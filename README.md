@@ -60,3 +60,30 @@ olist-churn-prediction/
 ---
 
 ## Methodology
+
+### Phase 1 — Exploratory Data Analysis (SQL)
+- Identified dataset timeframe: September 2016 – October 2018
+- Analyzed order status distribution (97% delivered)
+- Mapped null values per table and business impact
+- Answered key business questions: monthly revenue trends, top categories, delivery performance, review distribution
+
+### Phase 2 — RFM Analysis (SQL)
+Built a customer scoring model with three stages:
+
+**Stage 2.1 — Raw metrics per customer**
+- `recency_days`: days since last purchase (reference date: 2018-10-17)
+- `frequency`: number of distinct orders
+- `monetary_value`: total spend
+- `avg_review_score`: average rating left by the customer
+
+**Stage 2.2 — Score assignment**
+- R score: quintile-based (inverted — fewer days = higher score)
+- F score: stepped scale (0–3) — chosen over NTILE because 97% of customers purchased exactly once, making quintile distribution meaningless
+- M score: quintile-based
+- Experience score: quintile-based on avg review, NULLs assigned lowest group
+
+**Stage 3 — Segmentation**
+Rule-based CASE WHEN classification into 11 segments:
+Champions, Loyal, Cannot Lose, At Risk, Lost, Hibernating, Promising, New Customer, About to Sleep, Potential Loyalist, Price Sensitive.
+
+Results saved as a reusable PostgreSQL view: `rfm_final`.
