@@ -22,6 +22,16 @@ olist-churn-prediction/
 ├── README.md
 ├── .gitignore
 │
+├── original_data/
+│   ├── olist_customer_dataset.csv
+│   ├── olist_order_items_dataset.csv
+│   ├── olist_order_payments_dataset.csv
+│   ├── olist_order_reviews_dataset.csv
+│   ├── olist_orders_dataset.csv
+│   ├── olist_products_dataset.csv
+│   ├── olist_sellers_dataset.csv
+│   └── product_category_name_translation.csv
+│
 ├── sql/
 │   ├── 01_olist_ddl.sql           # Database schema, FK, indexes
 │   ├── 02_exploratory_dataset.sql # EDA: revenue, delivery, reviews
