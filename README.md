@@ -1,8 +1,13 @@
 # Olist Brazil — Customer Churn Prediction
 
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat&logo=postgresql&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?style=flat&logo=scikit-learn&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white)
+![Kaggle](https://img.shields.io/badge/Dataset-Kaggle-20BEFF?style=flat&logo=kaggle&logoColor=white)
+
 > End-to-end data project: from raw e-commerce data to a machine learning model for customer reactivation.
 > Dataset: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
-
 
 ---
 
@@ -49,7 +54,7 @@ olist-churn-prediction/
 ## Tech Stack
 
 | Layer | Tools |
-|---|---|
+|-------|-------|
 | Database | PostgreSQL 16 + pgAdmin |
 | Data exploration | SQL (CTEs, window functions, NTILE) |
 | Data manipulation | Python · pandas · NumPy |
@@ -62,12 +67,14 @@ olist-churn-prediction/
 ## Methodology
 
 ### Phase 1 — Exploratory Data Analysis (SQL)
+
 - Identified dataset timeframe: September 2016 – October 2018
 - Analyzed order status distribution (97% delivered)
 - Mapped null values per table and business impact
 - Answered key business questions: monthly revenue trends, top categories, delivery performance, review distribution
 
 ### Phase 2 — RFM Analysis (SQL)
+
 Built a customer scoring model with three stages:
 
 **Stage 2.1 — Raw metrics per customer**
@@ -82,7 +89,7 @@ Built a customer scoring model with three stages:
 - M score: quintile-based
 - Experience score: quintile-based on avg review, NULLs assigned lowest group
 
-**Stage 3 — Segmentation**
+**Stage 2.3 — Segmentation**
 Rule-based CASE WHEN classification into 11 segments:
 Champions, Loyal, Cannot Lose, At Risk, Lost, Hibernating, Promising, New Customer, About to Sleep, Potential Loyalist, Price Sensitive.
 
@@ -90,8 +97,7 @@ Results saved as a reusable PostgreSQL view: `rfm_final`.
 
 ### Phase 3 — Churn Prediction (Python + scikit-learn)
 
-**Churn definition:**
-Customers labeled as Lost, Hibernating, At Risk, or Cannot Lose were tagged as churn = 1.
+**Churn definition:** Customers labeled as Lost, Hibernating, At Risk, or Cannot Lose were tagged as `churn = 1`.
 This is a **hypothetical business rule**, not a directly observed event.
 → 32% churn rate (29,875 of 93,358 customers)
 
@@ -102,23 +108,28 @@ This is a **hypothetical business rule**, not a directly observed event.
 Three modeling approaches were tested. All results are documented — including the ones that didn't work.
 
 ### Experiment 1 — Logistic Regression with RFM scores
+
 ```
 Features: recency_days, frequency, monetary_value,
           avg_review_score, r_score, f_score, m_score, experience_score
 AUC-ROC:  0.9459
 Recall (Churn): 0.01
 ```
+
 **Problem:** indirect data leakage. The RFM scores were derived from the same variables used to define churn labels. The model learned a circular relationship, not real patterns.
 
 ### Experiment 2 — Random Forest (unconstrained)
+
 ```
 Features: recency_days, frequency, monetary_value, avg_review_score
 AUC-ROC:  0.9997
 Accuracy: 1.00
 ```
+
 **Problem:** severe overfitting. `recency_days` perfectly separates the classes because it was the primary variable used to define churn segments. Customers with recency < 300 days showed 0% churn rate — the model memorized this boundary instead of generalizing.
 
 ### Experiment 3 — Logistic Regression (raw features only) ✅
+
 ```
 Features: recency_days, frequency, monetary_value, avg_review_score
 AUC-ROC:  0.9433
@@ -127,7 +138,12 @@ Recall (Churn):    0.89
 F1 (Churn):        0.84
 Accuracy:          0.89
 ```
+
 **Selected model.** Honest, generalizable, and explainable.
+
+### Model Evaluation
+
+![ROC Curve and Confusion Matrix](images/churn_model_evaluation.png)
 
 ---
 
@@ -154,9 +170,14 @@ This project intentionally documents what didn't work and why.
 - **Churn is not directly observed.** The target variable is derived from RFM segments — a proxy for inactivity, not a confirmed business outcome.
 - **The dataset structure limits ML.** With 97% single-purchase customers, traditional churn modeling assumptions don't hold.
 - **recency_days leaks information.** The near-perfect separation at the 300-day boundary means the model is partially confirming our own segmentation rules.
-- **Recommended next steps:**
-  - Reframe as a **regression problem** (predict future customer value)
-  - Limit population to repeat buyers (2,801 customers) for a cleaner classification problem
-  - Add external signals: product category, payment method, delivery delay experienced
+
+**Recommended next steps:**
+- Reframe as a **regression problem** (predict future customer value)
+- Limit population to repeat buyers (2,801 customers) for a cleaner classification problem
+- Add external signals: product category, payment method, delivery delay experienced
 
 ---
+
+## Data Source
+
+[Olist Brazilian E-Commerce Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — Kaggle
